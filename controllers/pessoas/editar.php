@@ -2,7 +2,7 @@
 session_start();
 require_once '../../db/db.php';
 
-$financeiro = new Financeiro;
+$embaixada = new Embaixada;
 
 $id = (int)($_POST['id'] ?? 0);
 $nome = trim($_POST['nome'] ?? '');
@@ -20,7 +20,7 @@ if ($id <= 0 || $nome === '') {
 }
 
 $sql = "UPDATE pessoas SET nome = :nome, tipo = :tipo, telefone = :telefone, email = :email, data_nascimento = :data_nascimento, genero = :genero, status = :status, observacao = :observacao WHERE id_pessoa = :id";
-$stmt = $financeiro->pdo()->prepare($sql);
+$stmt = $embaixada->pdo()->prepare($sql);
 $stmt->execute([
     ':nome' => $nome,
     ':tipo' => $tipo,

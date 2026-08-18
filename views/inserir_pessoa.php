@@ -3,7 +3,7 @@ $acao = 'controllers/pessoas/inserir.php';
 $idPessoa = $_GET['id'] ?? null;
 
 if ($idPessoa) {
-    $dadosPessoa = $financeiro->list("SELECT * FROM pessoas WHERE id_pessoa = " . (int)$idPessoa);
+    $dadosPessoa = $embaixada->list("SELECT * FROM pessoas WHERE id_pessoa = " . (int)$idPessoa);
     $dadosPessoa = $dadosPessoa[0] ?? null;
     if ($dadosPessoa) {
         $acao = 'controllers/pessoas/editar.php';

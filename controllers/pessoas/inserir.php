@@ -2,7 +2,7 @@
 session_start();
 require_once '../../db/db.php';
 
-$financeiro = new Financeiro;
+$embaixada = new Embaixada;
 
 $nome = trim($_POST['nome'] ?? '');
 $tipo = trim($_POST['tipo'] ?? 'embaixador');
@@ -23,7 +23,7 @@ $idUsuario = $_SESSION['id_usuario'] ?? null;
 $sql = "INSERT INTO pessoas (id_usuario, nome, tipo, telefone, email, data_nascimento, genero, status, observacao)
         VALUES (:id_usuario, :nome, :tipo, :telefone, :email, :data_nascimento, :genero, :status, :observacao)";
 
-$stmt = $financeiro->pdo()->prepare($sql);
+$stmt = $embaixada->pdo()->prepare($sql);
 $stmt->execute([
     ':id_usuario' => $idUsuario,
     ':nome' => $nome,

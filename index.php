@@ -6,7 +6,7 @@ date_default_timezone_set('America/Sao_Paulo');
 header('Access-Control-Allow-Origin: *');
 
 include 'db/db.php';
-$financeiro = new Financeiro;
+$embaixada = new Embaixada;
 include 'header.php';
 
 if (isset($_SESSION['logado'])) {

@@ -22,7 +22,7 @@ if ($nivel === 'admin') {
     $sql = "SELECT * FROM pessoas WHERE id_usuario = {$idUsuario} OR id_pessoa = {$idPessoaAtual} ORDER BY nome ASC";
 }
 
-$pessoas = $financeiro->list($sql);
+$pessoas = $embaixada->list($sql);
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">

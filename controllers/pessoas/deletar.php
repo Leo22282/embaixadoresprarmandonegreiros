@@ -1,13 +1,13 @@
 <?php
 require_once '../../db/db.php';
 
-$financeiro = new Financeiro;
+$embaixada = new Embaixada;
 
 $id = (int)($_GET['id'] ?? 0);
 
 if ($id > 0) {
     $sql = 'DELETE FROM pessoas WHERE id_pessoa = :id';
-    $stmt = $financeiro->pdo()->prepare($sql);
+    $stmt = $embaixada->pdo()->prepare($sql);
     $stmt->execute([':id' => $id]);
 }
 
