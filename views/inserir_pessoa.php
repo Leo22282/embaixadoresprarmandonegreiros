@@ -1,4 +1,5 @@
 <?php
+$nivelAtual = $_SESSION['nivel'] ?? 'embaixador';
 $acao = 'controllers/pessoas/inserir.php';
 $idPessoa = $_GET['id'] ?? null;
 
@@ -20,7 +21,7 @@ if ($idPessoa) {
 
 if (!isset($nome)) {
     $nome = '';
-    $tipo = $_SESSION['nivel'] === 'embaixador' ? 'embaixador' : 'embaixador';
+    $tipo = $nivelAtual === 'responsavel' ? 'embaixador' : 'embaixador';
     $telefone = '';
     $email = '';
     $dataNascimento = '';
@@ -28,6 +29,9 @@ if (!isset($nome)) {
     $status = 'ativo';
     $observacao = '';
 }
+
+$permiteAlterarTipo = ($nivelAtual === 'admin' || $nivelAtual === 'conselheiro');
+$tipoEscolhido = $nivelAtual === 'responsavel' ? 'embaixador' : ($tipo ?? 'embaixador');
 ?>
 
 <div class="card p-4">
@@ -52,12 +56,14 @@ if (!isset($nome)) {
 
             <div class="col-md-6">
                 <label for="tipo" class="form-label">Tipo</label>
-                <select class="form-select" id="tipo" name="tipo" <?php echo $_SESSION['nivel'] === 'embaixador' ? 'disabled' : ''; ?> required>
-                    <option value="responsavel" <?php echo ($tipo ?? '') === 'responsavel' ? 'selected' : ''; ?>>Responsável</option>
-                    <option value="embaixador" <?php echo ($tipo ?? '') === 'embaixador' ? 'selected' : ''; ?>>Embaixador</option>
-                    <option value="conselheiro" <?php echo ($tipo ?? '') === 'conselheiro' ? 'selected' : ''; ?>>Conselheiro</option>
-                </select>
-                <?php if ($_SESSION['nivel'] === 'embaixador'): ?>
+                <?php if ($permiteAlterarTipo): ?>
+                    <select class="form-select" id="tipo" name="tipo" required>
+                        <option value="responsavel" <?php echo ($tipo ?? '') === 'responsavel' ? 'selected' : ''; ?>>Responsável</option>
+                        <option value="embaixador" <?php echo ($tipo ?? '') === 'embaixador' ? 'selected' : ''; ?>>Embaixador</option>
+                        <option value="conselheiro" <?php echo ($tipo ?? '') === 'conselheiro' ? 'selected' : ''; ?>>Conselheiro</option>
+                    </select>
+                <?php else: ?>
+                    <input type="text" class="form-control" value="Embaixador" readonly>
                     <input type="hidden" name="tipo" value="embaixador">
                 <?php endif; ?>
             </div>

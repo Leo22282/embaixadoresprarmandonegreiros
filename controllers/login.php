@@ -22,6 +22,7 @@ if (!empty($registro)) {
     if (!empty($pessoa)) {
         $_SESSION['id_pessoa'] = $pessoa[0]['id_pessoa'];
         $_SESSION['tipo_pessoa'] = $pessoa[0]['tipo'];
+        $_SESSION['nome_pessoa'] = $pessoa[0]['nome'];
     }
 
     header('Location: ../index.php?pagina=pessoas');

@@ -5,6 +5,7 @@ require_once '../../db/db.php';
 $embaixada = new Embaixada;
 
 $nome = trim($_POST['nome'] ?? '');
+$nivelAtual = $_SESSION['nivel'] ?? '';
 $tipo = trim($_POST['tipo'] ?? 'embaixador');
 $telefone = trim($_POST['telefone'] ?? '');
 $email = trim($_POST['email'] ?? '');
@@ -16,6 +17,14 @@ $observacao = trim($_POST['observacao'] ?? '');
 if ($nome === '') {
     header('Location: ../../index.php?pagina=inserir_pessoa&erro=1');
     exit;
+}
+
+if ($nivelAtual === 'responsavel') {
+    $tipo = 'embaixador';
+}
+
+if ($nivelAtual !== 'admin' && $nivelAtual !== 'conselheiro' && $nivelAtual !== 'responsavel') {
+    $tipo = 'embaixador';
 }
 
 $idUsuario = $_SESSION['id_usuario'] ?? null;
@@ -35,6 +44,20 @@ $stmt->execute([
     ':status' => $status,
     ':observacao' => $observacao,
 ]);
+
+if ($nivelAtual === 'responsavel') {
+    $pessoaResponsavel = $embaixada->list("SELECT id_pessoa FROM pessoas WHERE id_usuario = {$idUsuario} LIMIT 1");
+    $idResponsavel = $pessoaResponsavel[0]['id_pessoa'] ?? 0;
+    if ($idResponsavel > 0) {
+        $idEmbaixador = $embaixada->pdo()->lastInsertId();
+        $vinculoSql = "INSERT INTO responsavel_embaixador (id_responsavel, id_embaixador, relacionamento, ativo) VALUES (:id_responsavel, :id_embaixador, 'responsavel', 1)";
+        $vinculoStmt = $embaixada->pdo()->prepare($vinculoSql);
+        $vinculoStmt->execute([
+            ':id_responsavel' => $idResponsavel,
+            ':id_embaixador' => $idEmbaixador,
+        ]);
+    }
+}
 
 header('Location: ../../index.php?pagina=pessoas&sucesso=1');
 exit;

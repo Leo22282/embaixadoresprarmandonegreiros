@@ -6,6 +6,7 @@ $embaixada = new Embaixada;
 
 $id = (int)($_POST['id'] ?? 0);
 $nome = trim($_POST['nome'] ?? '');
+$nivelAtual = $_SESSION['nivel'] ?? '';
 $tipo = trim($_POST['tipo'] ?? 'embaixador');
 $telefone = trim($_POST['telefone'] ?? '');
 $email = trim($_POST['email'] ?? '');
@@ -17,6 +18,14 @@ $observacao = trim($_POST['observacao'] ?? '');
 if ($id <= 0 || $nome === '') {
     header('Location: ../../index.php?pagina=inserir_pessoa&erro=1');
     exit;
+}
+
+if ($nivelAtual === 'responsavel') {
+    $tipo = 'embaixador';
+}
+
+if ($nivelAtual !== 'admin' && $nivelAtual !== 'conselheiro' && $nivelAtual !== 'responsavel') {
+    $tipo = 'embaixador';
 }
 
 $sql = "UPDATE pessoas SET nome = :nome, tipo = :tipo, telefone = :telefone, email = :email, data_nascimento = :data_nascimento, genero = :genero, status = :status, observacao = :observacao WHERE id_pessoa = :id";

@@ -7,16 +7,17 @@ if ($nivel === 'admin') {
     $sql = "SELECT * FROM pessoas ORDER BY nome ASC";
 } elseif ($nivel === 'responsavel') {
     $sql = "
-        SELECT p.*
+        SELECT 
+            embaixador.*
         FROM responsavel_embaixador re
-        INNER JOIN pessoas p ON p.id_pessoa = re.id_embaixador
-        WHERE re.id_responsavel = (
-            SELECT pe.id_pessoa
-            FROM pessoas pe
-            WHERE pe.id_usuario = {$idUsuario}
-            LIMIT 1
-        )
-        ORDER BY p.nome ASC
+        INNER JOIN 
+            pessoas responsavel on responsavel.id_pessoa = re.id_responsavel
+        INNER JOIN 
+            pessoas embaixador on embaixador.id_pessoa = re.id_embaixador
+        where 
+            responsavel.id_usuario = {$idUsuario}
+        ORDER BY 
+            embaixador.nome ASC
     ";
 } else {
     $sql = "SELECT * FROM pessoas WHERE id_usuario = {$idUsuario} OR id_pessoa = {$idPessoaAtual} ORDER BY nome ASC";
@@ -25,6 +26,7 @@ if ($nivel === 'admin') {
 $pessoas = $embaixada->list($sql);
 ?>
 
+<h3>Olá, <?php echo $_SESSION['nome_pessoa'] ?? 'usuário'; ?></h3>
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
         <h2 class="page-title mb-1">
