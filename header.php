@@ -43,12 +43,17 @@
     <?php $nivel = $_SESSION['nivel'] ?? 'embaixador'; ?>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
         <div class="container-fluid px-4">
-            <a class="navbar-brand" href="index.php?pagina=pessoas">Embaixada</a>
+            <a class="navbar-brand" href="index.php?pagina=pessoas">Embaixada Armando Negreiros - IBG</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navPrincipal" aria-controls="navPrincipal" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navPrincipal">
                 <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+                    <?php if ($nivel === 'admin' || $nivel === 'responsavel' || $nivel === 'embaixador'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.php?pagina=atividades">Atividades</a>
+                        </li>
+                    <?php endif; ?>
                     <?php if ($nivel === 'admin' || $nivel === 'responsavel' || $nivel === 'embaixador'): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="index.php?pagina=pessoas">Pessoas</a>

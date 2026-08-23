@@ -45,6 +45,26 @@ switch ($pagina) {
         include 'views/inserir_pessoa.php';
         break;
 
+    case 'inserir_atividade':
+        if (!isset($_SESSION['logado'])) {
+            include 'views/home.php';
+            break;
+        }
+        if (($_SESSION['nivel'] ?? 'embaixador') === 'embaixador') {
+            include 'views/atividades.php';
+            break;
+        }
+        include 'views/inserir_atividade.php';
+        break;
+
+    case 'atividades':
+        if (!isset($_SESSION['logado'])) {
+            include 'views/home.php';
+            break;
+        }
+        include 'views/atividades.php';
+        break;
+
     default:
         include 'views/home.php';
         break;

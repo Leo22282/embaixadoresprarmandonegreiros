@@ -25,8 +25,9 @@ if ($nivel === 'admin') {
 
 $pessoas = $embaixada->list($sql);
 ?>
+<!-- Exibe o nome do usuário logado -->
+<h3>Olá, <?php echo ucfirst($_SESSION['nivel']) . " " . $_SESSION['nome_pessoa'] ?? 'usuário'; ?></h3>
 
-<h3>Olá, <?php echo $_SESSION['nome_pessoa'] ?? 'usuário'; ?></h3>
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
         <h2 class="page-title mb-1">
