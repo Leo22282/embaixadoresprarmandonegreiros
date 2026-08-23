@@ -19,7 +19,7 @@ $nivelAtual = $_SESSION['nivel'] ?? 'embaixador';
         </a>
     </div>
 
-    <form action="" method="post" enctype="multipart/form-data">
+    <form action="controllers/atividades/inserir.php" method="post" enctype="multipart/form-data">
         <div class="row g-3">
             <div class="col-12">
                 <label for="imagem" class="form-label">Imagem</label>
