@@ -40,7 +40,7 @@ $nivelAtual = $_SESSION['nivel'] ?? 'embaixador';
             <div class="col-12">
                 <label for="conteudo_html" class="form-label">Texto em HTML</label>
                 <div class="activity-editor">
-                    <textarea class="form-control" id="conteudo_html" name="conteudo_html" rows="8" required></textarea>
+                    <textarea class="form-control" id="conteudo_html" name="conteudo_html" rows="8"></textarea>
                 </div>
                 <div class="form-text">Use a barra de ferramentas para formatar o conteúdo da atividade.</div>
             </div>
@@ -58,9 +58,31 @@ $nivelAtual = $_SESSION['nivel'] ?? 'embaixador';
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        var formAtividade = document.querySelector('form[action="controllers/atividades/inserir.php"]');
         var campoConteudo = document.querySelector('#conteudo_html');
+        var editorAtividade = null;
 
-        if (!campoConteudo || typeof ClassicEditor === 'undefined') {
+        if (!formAtividade || !campoConteudo) {
+            return;
+        }
+
+        formAtividade.addEventListener('submit', function (event) {
+            var valorConteudo = '';
+
+            if (editorAtividade) {
+                valorConteudo = editorAtividade.getData().trim();
+                campoConteudo.value = valorConteudo;
+            } else {
+                valorConteudo = campoConteudo.value.trim();
+            }
+
+            if (valorConteudo === '') {
+                event.preventDefault();
+                alert('Preencha o conteúdo da atividade antes de cadastrar.');
+            }
+        });
+
+        if (typeof ClassicEditor === 'undefined') {
             return;
         }
 
@@ -72,6 +94,8 @@ $nivelAtual = $_SESSION['nivel'] ?? 'embaixador';
                 'bulletedList', 'numberedList', '|',
                 'blockQuote', 'undo', 'redo'
             ]
+        }).then(function (editor) {
+            editorAtividade = editor;
         }).catch(function (error) {
             console.error('Não foi possível iniciar o editor de atividades.', error);
         });
