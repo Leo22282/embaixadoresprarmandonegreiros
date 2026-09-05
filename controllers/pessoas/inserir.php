@@ -32,31 +32,69 @@ $idUsuario = $_SESSION['id_usuario'] ?? null;
 $sql = "INSERT INTO pessoas (id_usuario, nome, tipo, telefone, email, data_nascimento, genero, status, observacao)
         VALUES (:id_usuario, :nome, :tipo, :telefone, :email, :data_nascimento, :genero, :status, :observacao)";
 
-$stmt = $embaixada->pdo()->prepare($sql);
-$stmt->execute([
-    ':id_usuario' => $idUsuario,
-    ':nome' => $nome,
-    ':tipo' => $tipo,
-    ':telefone' => $telefone,
-    ':email' => $email,
-    ':data_nascimento' => $dataNascimento !== '' ? $dataNascimento : null,
-    ':genero' => $genero !== '' ? $genero : null,
-    ':status' => $status,
-    ':observacao' => $observacao,
-]);
+$pdo = $embaixada->pdo();
 
-if ($nivelAtual === 'responsavel') {
-    $pessoaResponsavel = $embaixada->list("SELECT id_pessoa FROM pessoas WHERE id_usuario = {$idUsuario} LIMIT 1");
-    $idResponsavel = $pessoaResponsavel[0]['id_pessoa'] ?? 0;
-    if ($idResponsavel > 0) {
-        $idEmbaixador = $embaixada->pdo()->lastInsertId();
+try {
+    $pdo->beginTransaction();
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        ':id_usuario' => $idUsuario,
+        ':nome' => $nome,
+        ':tipo' => $tipo,
+        ':telefone' => $telefone,
+        ':email' => $email,
+        ':data_nascimento' => $dataNascimento !== '' ? $dataNascimento : null,
+        ':genero' => $genero !== '' ? $genero : null,
+        ':status' => $status,
+        ':observacao' => $observacao,
+    ]);
+
+    if ($nivelAtual === 'responsavel') {
+        $idEmbaixador = (int) $pdo->lastInsertId();
+        $pessoaCriada = $pdo->prepare(
+            'SELECT id_pessoa FROM pessoas
+             WHERE id_pessoa = :id_pessoa AND nome = :nome AND tipo = :tipo'
+        );
+        $pessoaCriada->execute([
+            ':id_pessoa' => $idEmbaixador,
+            ':nome' => $nome,
+            ':tipo' => $tipo,
+        ]);
+
+        if (!$pessoaCriada->fetch()) {
+            throw new RuntimeException('O cadastro criado não foi localizado.');
+        }
+
+        $pessoaResponsavel = $pdo->prepare(
+            'SELECT id_pessoa FROM pessoas WHERE id_usuario = :id_usuario AND id_pessoa <> :id_embaixador LIMIT 1'
+        );
+        $pessoaResponsavel->execute([
+            ':id_usuario' => $idUsuario,
+            ':id_embaixador' => $idEmbaixador,
+        ]);
+        $idResponsavel = (int) ($pessoaResponsavel->fetchColumn() ?: 0);
+
+        if ($idEmbaixador <= 0 || $idResponsavel <= 0) {
+            throw new RuntimeException('Não foi possível identificar os cadastros envolvidos no vínculo.');
+        }
+
         $vinculoSql = "INSERT INTO responsavel_embaixador (id_responsavel, id_embaixador, relacionamento, ativo) VALUES (:id_responsavel, :id_embaixador, 'responsavel', 1)";
-        $vinculoStmt = $embaixada->pdo()->prepare($vinculoSql);
+        $vinculoStmt = $pdo->prepare($vinculoSql);
         $vinculoStmt->execute([
             ':id_responsavel' => $idResponsavel,
             ':id_embaixador' => $idEmbaixador,
         ]);
     }
+
+    $pdo->commit();
+} catch (Throwable $erro) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+
+    header('Location: ../../index.php?pagina=inserir_pessoa&erro=salvar');
+    exit;
 }
 
 header('Location: ../../index.php?pagina=pessoas&sucesso=1');
