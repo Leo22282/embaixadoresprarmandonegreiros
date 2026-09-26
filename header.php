@@ -71,7 +71,7 @@
                             <a class="nav-link" href="index.php?pagina=meu_cadastro">Meu cadastro</a>
                         </li>
                     <?php endif; ?>
-                    <?php if ($nivel === 'embaixador'): ?>
+                    <?php if ($nivel === 'admin' || $nivel === 'responsavel' || $nivel === 'embaixador'): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="gamificacao/index.php">
                                 <i class="bi bi-trophy"></i> Gamificação
