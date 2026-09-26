@@ -1,7 +1,7 @@
-﻿<?php
+<?php
 /**
- * db-exemplo.php - Modelo de Conexao Segura com MySQL via PDO
- * Copie este arquivo para db.php na mesma pasta e configure suas credenciais.
+ * db.php - Conexao Segura com MySQL via PDO
+ * As credenciais sao lidas automaticamente do arquivo db/.env
  */
 
 declare(strict_types=1);
@@ -22,21 +22,37 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS
     exit;
 }
 
-// Configuracoes do Banco de Dados
-$host    = 'localhost'; // Na Hostinger geralmente e 'localhost'
-$db      = 'NOME_DO_BANCO';
-$user    = 'USUARIO_DO_BANCO';
-$pass    = 'SENHA_DO_BANCO';
-$charset = 'utf8mb4';
+// 1. Carrega as variaveis do arquivo db/.env se existir
+$envFile = __DIR__ . '/../db/.env';
+if (file_exists($envFile)) {
+    $linhas = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($linhas as $linha) {
+        $linha = trim($linha);
+        if ($linha === '' || str_starts_with($linha, '#')) continue;
+        if (strpos($linha, '=') !== false) {
+            [$k, $v] = explode('=', $linha, 2);
+            $k = trim($k);
+            $v = trim($v);
+            if ((str_starts_with($v, '"') && str_ends_with($v, '"')) ||
+                (str_starts_with($v, "'") && str_ends_with($v, "'"))) {
+                $v = substr($v, 1, -1);
+            }
+            putenv("$k=$v");
+            $_ENV[$k] = $v;
+        }
+    }
+}
 
-// Opcional: Se existir config.php legado na pasta db/, pode carregar as variaveis automaticamente
+// 2. Se existir config.php legado na pasta db/, permite fallback
 if (file_exists(__DIR__ . '/../db/config.php')) {
     include_once __DIR__ . '/../db/config.php';
-    if (!empty($servidor)) $host = $servidor;
-    if (!empty($database)) $db   = $database;
-    if (!empty($usuario))  $user = $usuario;
-    if (isset($senha))     $pass = $senha;
 }
+
+$host    = getenv('DB_HOST') ?: ($_ENV['DB_HOST'] ?? ($servidor ?? 'localhost'));
+$db      = getenv('DB_NAME') ?: ($_ENV['DB_NAME'] ?? ($database ?? ''));
+$user    = getenv('DB_USER') ?: ($_ENV['DB_USER'] ?? ($usuario ?? ''));
+$pass    = getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? ($senha ?? ''));
+$charset = 'utf8mb4';
 
 $options = [
     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
@@ -52,9 +68,13 @@ $erro_conexao = null;
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=$charset", $user, $pass, $options);
 } catch (PDOException $e1) {
-    try {
-        $pdo = new PDO("mysql:host=localhost;dbname=$db;charset=$charset", $user, $pass, $options);
-    } catch (PDOException $e2) {
+    if ($host !== 'localhost') {
+        try {
+            $pdo = new PDO("mysql:host=localhost;dbname=$db;charset=$charset", $user, $pass, $options);
+        } catch (PDOException $e2) {
+            $erro_conexao = $e1->getMessage();
+        }
+    } else {
         $erro_conexao = $e1->getMessage();
     }
 }
@@ -69,7 +89,7 @@ function garantirConexaoPdo(): PDO {
         echo json_encode([
             'sucesso' => false,
             'mensagem' => 'Falha na conexao com o banco MySQL.',
-            'detalhe' => $erro_conexao ?: 'Verifique suas credenciais no arquivo api/db.php.'
+            'detalhe' => $erro_conexao ?: 'Verifique o arquivo db/.env.'
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
