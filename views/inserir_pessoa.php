@@ -32,6 +32,19 @@ if (!isset($nome)) {
 
 $permiteAlterarTipo = ($nivelAtual === 'admin' || $nivelAtual === 'conselheiro');
 $tipoEscolhido = $nivelAtual === 'responsavel' ? 'embaixador' : ($tipo ?? 'embaixador');
+$responsaveis = [];
+
+if ($nivelAtual === 'conselheiro' && !$idPessoa) {
+    $responsaveis = $embaixada->list(
+        "SELECT DISTINCT pessoas.id_pessoa, pessoas.nome
+         FROM pessoas
+         LEFT JOIN usuarios ON usuarios.id_usuario = pessoas.id_usuario
+         WHERE pessoas.status = 'ativo'
+           AND (pessoas.tipo IN ('responsavel', 'conselheiro')
+                OR usuarios.nivel IN ('responsavel', 'conselheiro'))
+         ORDER BY pessoas.nome ASC"
+    );
+}
 ?>
 
 <div class="card p-4">
@@ -67,6 +80,21 @@ $tipoEscolhido = $nivelAtual === 'responsavel' ? 'embaixador' : ($tipo ?? 'embai
                     <input type="hidden" name="tipo" value="embaixador">
                 <?php endif; ?>
             </div>
+
+            <?php if ($nivelAtual === 'conselheiro' && !$idPessoa): ?>
+                <div class="col-md-6">
+                    <label for="id_responsavel" class="form-label">Responsável</label>
+                    <select class="form-select" id="id_responsavel" name="id_responsavel" required>
+                        <option value="">Selecione o responsável</option>
+                        <?php foreach ($responsaveis as $responsavel): ?>
+                            <option value="<?php echo (int) $responsavel['id_pessoa']; ?>">
+                                <?php echo htmlspecialchars($responsavel['nome']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div class="form-text">Selecione um responsável ou conselheiro para vincular o novo embaixador.</div>
+                </div>
+            <?php endif; ?>
 
             <div class="col-md-6">
                 <label for="telefone" class="form-label">Telefone</label>

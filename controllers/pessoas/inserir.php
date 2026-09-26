@@ -13,6 +13,7 @@ $dataNascimento = trim($_POST['data_nascimento'] ?? '');
 $genero = trim($_POST['genero'] ?? '');
 $status = trim($_POST['status'] ?? 'ativo');
 $observacao = trim($_POST['observacao'] ?? '');
+$idResponsavelSelecionado = (int) ($_POST['id_responsavel'] ?? 0);
 
 if ($nome === '') {
     header('Location: ../../index.php?pagina=inserir_pessoa&erro=1');
@@ -50,7 +51,7 @@ try {
         ':observacao' => $observacao,
     ]);
 
-    if ($nivelAtual === 'responsavel') {
+    if ($nivelAtual === 'responsavel' || $nivelAtual === 'conselheiro') {
         $idEmbaixador = (int) $pdo->lastInsertId();
         $pessoaCriada = $pdo->prepare(
             'SELECT id_pessoa FROM pessoas
@@ -66,14 +67,32 @@ try {
             throw new RuntimeException('O cadastro criado não foi localizado.');
         }
 
-        $pessoaResponsavel = $pdo->prepare(
-            'SELECT id_pessoa FROM pessoas WHERE id_usuario = :id_usuario AND id_pessoa <> :id_embaixador LIMIT 1'
-        );
-        $pessoaResponsavel->execute([
-            ':id_usuario' => $idUsuario,
-            ':id_embaixador' => $idEmbaixador,
-        ]);
-        $idResponsavel = (int) ($pessoaResponsavel->fetchColumn() ?: 0);
+        if ($nivelAtual === 'responsavel') {
+            $pessoaResponsavel = $pdo->prepare(
+                'SELECT id_pessoa FROM pessoas
+                 WHERE id_usuario = :id_usuario AND id_pessoa <> :id_embaixador
+                 LIMIT 1'
+            );
+            $pessoaResponsavel->execute([
+                ':id_usuario' => $idUsuario,
+                ':id_embaixador' => $idEmbaixador,
+            ]);
+            $idResponsavel = (int) ($pessoaResponsavel->fetchColumn() ?: 0);
+        } else {
+            $pessoaResponsavel = $pdo->prepare(
+                'SELECT pessoas.id_pessoa
+                 FROM pessoas
+                 LEFT JOIN usuarios ON usuarios.id_usuario = pessoas.id_usuario
+                 WHERE pessoas.id_pessoa = :id_responsavel
+                   AND pessoas.status = \'ativo\'
+                   AND (pessoas.tipo IN (\'responsavel\', \'conselheiro\')
+                        OR usuarios.nivel IN (\'responsavel\', \'conselheiro\'))'
+            );
+            $pessoaResponsavel->execute([
+                ':id_responsavel' => $idResponsavelSelecionado,
+            ]);
+            $idResponsavel = (int) ($pessoaResponsavel->fetchColumn() ?: 0);
+        }
 
         if ($idEmbaixador <= 0 || $idResponsavel <= 0) {
             throw new RuntimeException('Não foi possível identificar os cadastros envolvidos no vínculo.');
